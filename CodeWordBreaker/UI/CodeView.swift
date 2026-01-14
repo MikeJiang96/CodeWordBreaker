@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// FIXME: Reuse CodeWithMatchMarkersView
 struct CodeView<AncillaryView>: View where AncillaryView: View {
     // MARK: Data In
     let code: Code
@@ -35,52 +36,43 @@ struct CodeView<AncillaryView>: View where AncillaryView: View {
     var body: some View {
         HStack {
             ForEach(code.pegs.indices, id: \.self) { index in
-                PegView(peg: code.pegs[index], backgroundColor: calcMatchColor(at: index))
-                    .padding(Selection.border)
-                    .background {  // selection background
-                        Group {
-                            if selection == index, code.kind == .guess {
-                                Selection.shape
-                                    .foregroundStyle(Selection.color)
-                                    .matchedGeometryEffect(id: "selection", in: selectionNamespace)
-                            }
-                        }
-                        .animation(.selection, value: selection)
-                    }
-                    .overlay {  // hidden code obscuring
-                        Selection.shape
-                            .foregroundStyle(code.isHidden ? Color.gray : .clear)
-                            .transaction { transaction in
-                                if code.isHidden {
-                                    transaction.animation = nil
-                                }
-                            }
-                    }
-                    .onTapGesture {
-                        if code.kind == .guess {
-                            selection = index
+                PegView(
+                    peg: code.pegs[index],
+                    backgroundColor: CodeWithMatchMarkersView.calcPegBackgroundColor(for: code, at: index)
+                )
+                .padding(Selection.border)
+                .background {  // selection background
+                    Group {
+                        if selection == index, code.kind == .guess {
+                            Selection.shape
+                                .foregroundStyle(Selection.color)
+                                .matchedGeometryEffect(id: "selection", in: selectionNamespace)
                         }
                     }
+                    .animation(.selection, value: selection)
+                }
+                .overlay {  // hidden code obscuring
+                    Selection.shape
+                        .foregroundStyle(code.isHidden ? Color.gray : .clear)
+                        .transaction { transaction in
+                            if code.isHidden {
+                                transaction.animation = nil
+                            }
+                        }
+                }
+                .onTapGesture {
+                    if code.kind == .guess {
+                        selection = index
+                    }
+                }
             }
+
             Color.clear.aspectRatio(1, contentMode: .fit)
                 .overlay {
                     ancillaryView()
                 }
         }
-    }
-
-    func calcMatchColor(at index: Int) -> Color {
-        var color = Color.clear
-
-        if index < code.matches.count {
-            if code.matches[index] == .exact {
-                color = Color.red
-            } else if code.matches[index] == .inexact {
-                color = Color.yellow
-            }
-        }
-
-        return color.opacity(0.5)
+        .frame(maxHeight: 100)
     }
 }
 

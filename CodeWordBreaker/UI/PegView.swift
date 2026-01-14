@@ -20,9 +20,9 @@ struct PegView: View {
         pegShape
             .stroke()
             .background(
-                Circle().foregroundStyle(backgroundColor)
+                pegShape.foregroundStyle(backgroundColor)
             )
-            .overlay { Text(peg).font(.title2) }
+            .overlay { Text(peg) }
     }
 }
 

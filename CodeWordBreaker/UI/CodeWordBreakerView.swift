@@ -12,26 +12,28 @@ struct CodeWordBreakerView: View {
     @Environment(\.words)
     var words
 
+    // MARK: Data Shared with Me
+    let game: CodeWordBreaker
+
     // MARK: Data Owned by Me
-    @State private var game = CodeWordBreaker(masterCode: "AWAIT")
+    @State
+    private var selection: Int = 0
 
-    @State private var selection: Int = 0
-    @State private var restarting = false
-
-    @State private var checker = UITextChecker()
+    @State
+    private var checker = UITextChecker()
 
     // MARK: - Body
 
     var body: some View {
         VStack {
-            Button("Restart", systemImage: "arrow.circlepath", action: restart)
-
             CodeView(code: game.masterCode)
 
             ScrollView {
                 if !game.isOver {
                     CodeView(code: game.guess, selection: $selection) {
-                        Button("Guess", action: guess).flexibleSystemFont()
+                        Button("Guess", action: guess)
+                            .flexibleSystemFont()
+                            .lineLimit(1)
                     }
                 }
 
@@ -49,32 +51,20 @@ struct CodeWordBreakerView: View {
         }
         .padding()
         .onChange(of: words.count, initial: true) {
-            if game.attempts.count == 0 {  // don’t disrupt a game in progress
+            if game.attempts.count == 0
+                && (game.masterCode.word == "DEFAULT" || game.masterCode.word == "AWAIT")
+            {  // don’t disrupt a game in progress
                 var newMasterCode = "DEFAULT"
 
                 if words.count == 0 {  // no words (yet)
                     newMasterCode = "AWAIT"
                 } else {
-                    newMasterCode = words.random(length: game.masterCode.pegs.count) ?? "ERROR"
+                    let length = game.masterCode.pegs.count
+
+                    newMasterCode = words.random(length: length) ?? CodeWordBreakerView.errorString(of: length)
                 }
 
                 game.restart(with: newMasterCode)
-            }
-        }
-    }
-
-    func restart() {
-        withAnimation(.restart) {
-            restarting = true
-        } completion: {
-            withAnimation(.restart) {
-                let newMasterCode =
-                    words.random(length: Int.random(in: 3...6)) ?? "NOWORD"
-
-                game.restart(with: newMasterCode)
-
-                selection = 0
-                restarting = false
             }
         }
     }
@@ -87,8 +77,23 @@ struct CodeWordBreakerView: View {
             }
         }
     }
+
+    static func errorString(of length: Int) -> String {
+        let base = "ERROR"
+
+        if base.count == length {
+            return base
+        } else if base.count > length {
+            return String(base.prefix(length))
+        } else {
+            return base + String(repeating: "R", count: length - base.count)
+        }
+    }
 }
 
 #Preview {
-    CodeWordBreakerView()
+    @Previewable @State var game = CodeWordBreaker(name: "Preview")
+    NavigationStack {
+        CodeWordBreakerView(game: game)
+    }
 }

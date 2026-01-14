@@ -28,13 +28,18 @@ extension View {
     func flexibleSystemFont(minimum: CGFloat = 8, maximum: CGFloat = 80) -> some View {
         self
             .font(.system(size: maximum))
-            .minimumScaleFactor(minimum/maximum)
+            .minimumScaleFactor(minimum / maximum)
     }
 }
 
 extension Color {
     static func gray(_ brightness: CGFloat) -> Color {
-        return Color(hue: 148/360, saturation: 0, brightness: brightness)
+        return Color(hue: 148 / 360, saturation: 0, brightness: brightness)
     }
 }
 
+extension Code {
+    static let pegExactMatchColor = Color.red
+    static let pegInexactMatchColor = Color.yellow
+    static let pegNoMatchColor = Color.clear
+}

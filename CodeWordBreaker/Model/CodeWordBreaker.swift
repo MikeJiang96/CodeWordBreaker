@@ -9,27 +9,31 @@ import Foundation
 
 typealias Peg = String
 
-struct CodeWordBreaker {
+@Observable
+class CodeWordBreaker {
+    var name: String
     var masterCode: Code
     var guess: Code
     var attempts = [Code]()
     let pegChoices: [Peg]
+    var lastAttemptTime: Date?
 
-    init(masterCode: String = "DEFAULT") {
+    init(name: String = "CodeWord Breaker", masterCode: String = "DEFAULT") {
         pegChoices = "QWERTYUIOPASDFGHJKLZXCVBNM".map { String($0) }
 
+        self.name = name
         self.masterCode = Code(kind: .master(isHidden: true), size: masterCode.count)
+        self.guess = Code(kind: .guess, size: masterCode.count)
+
         self.masterCode.word = masterCode
         print(self.masterCode)
-
-        guess = Code(kind: .guess, size: masterCode.count)
     }
 
     var isOver: Bool {
         attempts.last?.pegs == masterCode.pegs
     }
 
-    mutating func restart(with newMasterCode: String = "DEFAULT") {
+    func restart(with newMasterCode: String) {
         self.masterCode = Code(kind: .master(isHidden: true), size: newMasterCode.count)
         self.masterCode.word = newMasterCode
         print(self.masterCode)
@@ -38,10 +42,12 @@ struct CodeWordBreaker {
         attempts.removeAll()
     }
 
-    mutating func attemptGuess() {
+    func attemptGuess() {
         if !validGuess() {
             return
         }
+
+        lastAttemptTime = .now
 
         var attemp = guess
 
@@ -63,8 +69,18 @@ struct CodeWordBreaker {
         return true
     }
 
-    mutating func setGuessPeg(_ peg: Peg, at index: Int) {
+    func setGuessPeg(_ peg: Peg, at index: Int) {
         guard guess.pegs.indices.contains(index) else { return }
         guess.pegs[index] = peg
+    }
+}
+
+extension CodeWordBreaker: Identifiable, Hashable, Equatable {
+    static func == (lhs: CodeWordBreaker, rhs: CodeWordBreaker) -> Bool {
+        return lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

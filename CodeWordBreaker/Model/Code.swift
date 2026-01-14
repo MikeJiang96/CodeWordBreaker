@@ -13,7 +13,7 @@ enum Match {
     case inexact
 }
 
-struct Code {
+struct Code: Hashable {
     var kind: Kind
     var pegs: [Peg]
 
@@ -24,7 +24,7 @@ struct Code {
         set { pegs = newValue.map { String($0) } }
     }
 
-    enum Kind: Equatable {
+    enum Kind: Equatable, Hashable {
         case master(isHidden: Bool)
         case guess
         case attempt([Match])
@@ -53,7 +53,7 @@ struct Code {
         switch kind {
         case .attempt(let matches):
             return matches
-        default: return Array(repeating: .nomatch, count: pegs.count)
+        default: return []
         }
     }
 

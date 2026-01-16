@@ -33,7 +33,6 @@ struct GameList: View {
             ForEach(games) { game in
                 NavigationLink(value: game) {
                     GameSummary(game: game)
-                        .frame(maxHeight: 100)
                 }
                 .swipeActions(edge: .leading) {
                     Button {
@@ -52,7 +51,7 @@ struct GameList: View {
             }
         }
         .sheet(item: $gameToCheat) { game in
-            CodeWithMatchMarkersView(code: game.masterCode)
+            CodeBasicView(code: game.masterCode)
                 .padding()
         }
         .listStyle(.plain)

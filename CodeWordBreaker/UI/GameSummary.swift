@@ -10,16 +10,20 @@ import SwiftUI
 struct GameSummary: View {
     let game: CodeWordBreaker
 
+    static let lastAttemptPreviewMaxHeight: CGFloat = 30
+
     var body: some View {
         VStack(alignment: .leading) {
             Text(game.name).font(.title)
 
             if let lastAttempt = game.attempts.last {
-                CodeWithMatchMarkersView(code: lastAttempt)
+                CodeBasicView(code: lastAttempt)
+                    .frame(maxHeight: GameSummary.lastAttemptPreviewMaxHeight)
             } else {
-                CodeWithMatchMarkersView(
+                CodeBasicView(
                     code: Code(kind: .unknown, size: game.masterCode.pegs.count)
                 )
+                .frame(maxHeight: GameSummary.lastAttemptPreviewMaxHeight)
             }
 
             Text("^[\(game.attempts.count) attempt](inflect: true)")

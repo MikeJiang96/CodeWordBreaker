@@ -17,7 +17,7 @@ struct GameChooser: View {
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
             GameList(selection: $selection)
-                .navigationTitle("Code Breaker")
+                .navigationTitle("CodeWord Breaker")
         } detail: {
             if let selection {
                 CodeWordBreakerView(game: selection)

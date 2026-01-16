@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// FIXME: Reuse CodeWithMatchMarkersView
 struct CodeView<AncillaryView>: View where AncillaryView: View {
     // MARK: Data In
     let code: Code
@@ -35,36 +34,34 @@ struct CodeView<AncillaryView>: View where AncillaryView: View {
 
     var body: some View {
         HStack {
-            ForEach(code.pegs.indices, id: \.self) { index in
-                PegView(
-                    peg: code.pegs[index],
-                    backgroundColor: CodeWithMatchMarkersView.calcPegBackgroundColor(for: code, at: index)
-                )
-                .padding(Selection.border)
-                .background {  // selection background
-                    Group {
-                        if selection == index, code.kind == .guess {
-                            Selection.shape
-                                .foregroundStyle(Selection.color)
-                                .matchedGeometryEffect(id: "selection", in: selectionNamespace)
-                        }
-                    }
-                    .animation(.selection, value: selection)
-                }
-                .overlay {  // hidden code obscuring
-                    Selection.shape
-                        .foregroundStyle(code.isHidden ? Color.gray : .clear)
-                        .transaction { transaction in
-                            if code.isHidden {
-                                transaction.animation = nil
+            CodeBasicView(code: code) { pegView, index in
+                return
+                    pegView
+                    .padding(Selection.border)
+                    .background {  // selection background
+                        Group {
+                            if selection == index, code.kind == .guess {
+                                Selection.shape
+                                    .foregroundStyle(Selection.color)
+                                    .matchedGeometryEffect(id: "selection", in: selectionNamespace)
                             }
                         }
-                }
-                .onTapGesture {
-                    if code.kind == .guess {
-                        selection = index
+                        .animation(.selection, value: selection)
                     }
-                }
+                    .overlay {  // hidden code obscuring
+                        Selection.shape
+                            .foregroundStyle(code.isHidden ? Color.gray : .clear)
+                            .transaction { transaction in
+                                if code.isHidden {
+                                    transaction.animation = nil
+                                }
+                            }
+                    }
+                    .onTapGesture {
+                        if code.kind == .guess {
+                            selection = index
+                        }
+                    }
             }
 
             Color.clear.aspectRatio(1, contentMode: .fit)

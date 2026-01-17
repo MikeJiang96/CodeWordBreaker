@@ -6,40 +6,63 @@
 //
 
 import Foundation
+import SwiftData
 
 typealias Peg = String
 
-@Observable
+@Model
 class CodeWordBreaker {
     var name: String
+
+    @Relationship(deleteRule: .cascade)
     var masterCode: Code
+
+    @Relationship(deleteRule: .cascade)
     var guess: Code
-    var attempts = [Code]()
-    let pegChoices: [Peg]
+
+    @Relationship(deleteRule: .cascade)
+    var _attempts = [Code]()
+
+    var pegChoices: [Peg]
     var lastAttemptTime: Date?
+
+    var isOver: Bool = false
 
     init(name: String = "CodeWord Breaker", masterCode: String = "DEFAULT") {
         pegChoices = "QWERTYUIOPASDFGHJKLZXCVBNM".map { String($0) }
 
         self.name = name
-        self.masterCode = Code(kind: .master(isHidden: true), size: masterCode.count)
-        self.guess = Code(kind: .guess, size: masterCode.count)
+        self.masterCode = Code(
+            kind: .master(isHidden: true),
+            pegs: Array(repeating: Code.missingPeg, count: masterCode.count)
+        )
+        self.guess = Code(
+            kind: .guess,
+            pegs: Array(repeating: Code.missingPeg, count: masterCode.count)
+        )
 
         self.masterCode.word = masterCode
-        print(self.masterCode)
     }
 
-    var isOver: Bool {
-        attempts.last?.pegs == masterCode.pegs
+    var attempts: [Code] {
+        return _attempts.sorted { $0.timestamp < $1.timestamp }
     }
 
     func restart(with newMasterCode: String) {
-        self.masterCode = Code(kind: .master(isHidden: true), size: newMasterCode.count)
-        self.masterCode.word = newMasterCode
-        print(self.masterCode)
+        self.masterCode = Code(
+            kind: .master(isHidden: true),
+            pegs: Array(repeating: Code.missingPeg, count: newMasterCode.count)
+        )
+        self.guess = Code(
+            kind: .guess,
+            pegs: Array(repeating: Code.missingPeg, count: newMasterCode.count)
+        )
 
-        guess = Code(kind: .guess, size: newMasterCode.count)
-        attempts.removeAll()
+        self.masterCode.word = newMasterCode
+
+        _attempts.removeAll()
+
+        isOver = false
     }
 
     func attemptGuess() {
@@ -49,14 +72,20 @@ class CodeWordBreaker {
 
         lastAttemptTime = .now
 
-        var attemp = guess
+        let attempt = Code(
+            kind: .attempt(guess.match(against: masterCode)),
+            pegs: guess.pegs
+        )
 
-        attemp.kind = .attempt(attemp.match(against: masterCode))
-        attempts.append(attemp)
+        _attempts.append(attempt)
 
-        guess = Code(kind: .guess, size: guess.pegs.count)
+        guess = Code(
+            kind: .guess,
+            pegs: Array(repeating: Code.missingPeg, count: guess.pegs.count)
+        )
 
-        if isOver {
+        if attempts.last?.pegs == masterCode.pegs {
+            isOver = true
             masterCode.kind = .master(isHidden: false)
         }
     }
@@ -72,15 +101,5 @@ class CodeWordBreaker {
     func setGuessPeg(_ peg: Peg, at index: Int) {
         guard guess.pegs.indices.contains(index) else { return }
         guess.pegs[index] = peg
-    }
-}
-
-extension CodeWordBreaker: Identifiable, Hashable, Equatable {
-    static func == (lhs: CodeWordBreaker, rhs: CodeWordBreaker) -> Bool {
-        return lhs.id == rhs.id
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
     }
 }

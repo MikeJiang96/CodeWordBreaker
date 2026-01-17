@@ -6,40 +6,45 @@
 //
 
 import Foundation
+import SwiftData
 
-enum Match {
+enum Match: String {
     case nomatch
     case exact
     case inexact
 }
 
-struct Code: Hashable {
-    var kind: Kind
-    var pegs: [Peg]
+@Model
+class Code {
+    var _kind: String = Kind.unknown.description
+    var _pegs: String = ""
+    var timestamp = Date.now
 
-    static let missingPeg: Peg = ""
+    // Must one char's size
+    static let missingPeg: Peg = " "
+
+    var pegs: [Peg] {
+        get {
+            _pegs.map { String($0) }
+        }
+        set {
+            _pegs = newValue.joined()
+        }
+    }
 
     var word: String {
-        get { pegs.joined() }
-        set { pegs = newValue.map { String($0) } }
+        get { _pegs }
+        set { _pegs = newValue }
     }
 
-    enum Kind: Equatable, Hashable {
-        case master(isHidden: Bool)
-        case guess
-        case attempt([Match])
-        case unknown
+    var kind: Kind {
+        get { return Kind(_kind) }
+        set { _kind = newValue.description }
     }
 
-    init(kind: Kind, size: Int) {
+    init(kind: Kind, pegs: [Peg]) {
         self.kind = kind
-        pegs = Array(repeating: Code.missingPeg, count: size)
-    }
-
-    mutating func randomize(from pegChoices: [Peg]) {
-        for index in pegs.indices {
-            pegs[index] = pegChoices.randomElement() ?? Code.missingPeg
-        }
+        self.pegs = pegs
     }
 
     var isHidden: Bool {

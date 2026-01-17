@@ -63,7 +63,7 @@ struct CodeBasicView<AugmentedPegView: View>: View {
             let game = CodeWordBreaker(masterCode: "GUESS")
             game.guess.word = "GSGGS"
             game.attemptGuess()
-            return game.attempts.last ?? Code(kind: .unknown, size: 5)
+            return game.attempts.last ?? Code(kind: .unknown, pegs: [])
         }()
     )
 
@@ -72,7 +72,7 @@ struct CodeBasicView<AugmentedPegView: View>: View {
             let game = CodeWordBreaker(masterCode: "GUESS")
             game.guess.word = "GGUGS"
             game.attemptGuess()
-            return game.attempts.last ?? Code(kind: .unknown, size: 5)
+            return game.attempts.last ?? Code(kind: .unknown, pegs: [])
         }()
     ) { pegView, _ in
         return pegView.onTapGesture {

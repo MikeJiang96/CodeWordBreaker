@@ -21,7 +21,10 @@ struct GameSummary: View {
                     .frame(maxHeight: GameSummary.lastAttemptPreviewMaxHeight)
             } else {
                 CodeBasicView(
-                    code: Code(kind: .unknown, size: game.masterCode.pegs.count)
+                    code: Code(
+                        kind: .unknown,
+                        pegs: Array(repeating: Code.missingPeg, count: game.masterCode.pegs.count)
+                    )
                 )
                 .frame(maxHeight: GameSummary.lastAttemptPreviewMaxHeight)
             }
